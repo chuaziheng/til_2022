@@ -3,8 +3,8 @@ from typing import List
 
 from tilsdk import *                                            # import the SDK
 from tilsdk.utilities import PIDController, SimpleMovingAverage # import optional useful things
-# from tilsdk.mock_robomaster.robot import Robot                 # Use this for the simulator
-from robomaster.robot import Robot                              # Use this for real robot
+from tilsdk.mock_robomaster.robot import Robot                 # Use this for the simulator
+# from robomaster.robot import Robot                              # Use this for real robot
 
 # Import your code
 from cv_service import CVService, MockCVService

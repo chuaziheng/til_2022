@@ -21,8 +21,8 @@ logging.basicConfig(level=logging.INFO,
 REACHED_THRESHOLD_M = 0.3   # TODO: Participant may tune.
 ANGLE_THRESHOLD_DEG = 20.0  # TODO: Participant may tune.
 ROBOT_RADIUS_M = 0.17       # TODO: Participant may tune.
-NLP_MODEL_DIR = ''          # TODO: Participant to fill in.
-CV_MODEL_DIR = ''           # TODO: Participant to fill in.
+NLP_MODEL_DIR = 'data/models/nlp'          # TODO: Participant to fill in.
+CV_MODEL_DIR = 'data/models/cv'           # TODO: Participant to fill in.
 
 def main():
     # Initialize services
@@ -55,7 +55,7 @@ def main():
         # Get new data
         pose, clues = loc_service.get_pose()
         img = robot.camera.read_cv2_image(strategy='newest')
-        
+
         # TODO: Participant to complete.
         pass
 

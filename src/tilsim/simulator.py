@@ -414,7 +414,7 @@ def main():
     ##### Setup robot #####
     global robot
     if config.proxy_real_robot:
-        robot = ActualRobot()
+        robot = ActualRobot(config.proxy_host, config.proxy_port)
     else:
         robot = SimRobot(pose=config.start_pose)
 

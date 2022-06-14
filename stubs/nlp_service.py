@@ -62,11 +62,12 @@ class NLPService:
 
         # TODO: Participant to complete.
         locations = []
+        print('in nlp service')
+
         for clue in clues:
             locations.append(clue.location)
 
             waveform, sr = sf.read(BytesIO(clue.audio))
-            print('in nlp service')
 
             # speech, sr = torchaudio.load(audio)
             # speech = speech[0].numpy().squeeze()

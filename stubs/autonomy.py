@@ -69,10 +69,9 @@ def main():
     # Main loop
     while True:
         # Get new data
-        robot.chassis.drive_speed(x=0.5, y=0, z=0)
+        # robot.chassis.drive_speed(x=0.5, y=0, z=0)
         pose, clues = loc_service.get_pose()
         pose = pose_filter.update(pose)
-        print('clues', len(clues))
         img = robot.camera.read_cv2_image(strategy='newest')
 
         if not pose:
@@ -83,7 +82,8 @@ def main():
         # process clues using NLP and determine any new LOI
         if clues:
             new_lois = nlp_service.locations_from_clues(clues)
-            update_locations(lois, new_lois)  # TODO: implement update_locations
+            # update_locations(lois, new_lois)  # TODO: implement update_locations
+            lois += new_lois
             seen_clues.update([c.clue_id for c in clues])
 
 
@@ -106,15 +106,18 @@ def main():
                 logging.getLogger('Main').info('No more LOI')
                 # TODO: perform random search for new clues or targets
             else:
+                print('loi length ', len(lois))
                 # Get new LOI
                 lois.sort(key=lambda l: euclidean_distance(l, pose), reverse=True)
                 curr_loi = lois.pop()
                 logging.getLogger('Main').info(f"Current LOI set to: {curr_loi}")
 
                 # Plan a path to new LOI
-                logging.getLogger('Main').info(f'Planning path to {curr_loi}')
-                path = planner.plan(pose[:2], curr_loi)
+                cur_location = RealLocation(pose.x, pose.y)
+                logging.getLogger('Main').info(f'Planning path from {cur_location} to {curr_loi}')
+                path = planner.plan(cur_location, curr_loi)  # TODO: debug
                 path.reverse()
+                print(path)
                 curr_wp = None
                 logging.getLogger('Main').info('Path planned')
         else:

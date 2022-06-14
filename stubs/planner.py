@@ -3,6 +3,7 @@ from typing import List, Tuple, TypeVar, Dict
 from tilsdk.localization import *
 import heapq
 from queue import PriorityQueue
+from collections import deque
 
 T = TypeVar('T')
 
@@ -96,15 +97,48 @@ class Planner:
 
         # TODO: Participant to complete.
         frontier = PriorityQueue()
-        frontier.put(start, 0)
-        prev: Dict[GridLocation, GridLocation] = {}
+        frontier.put(start, 0 + self.heuristic(start, goal))
+        prev: Dict[GridLocation, GridLocation] = {}  # {cur: prev}
         current_cost: Dict[GridLocation, float] = {}
         prev[start] = None
-        current_cost[start] = 0
+        current_cost[start] = 0 + self.heuristic(start, goal)
 
         while not frontier.is_empty():
             # TODO: Participant to complete
-            pass
+            # cur_wp, cur_dist = frontier.get()
+            cur_wp = frontier.get()
+
+            # if cur_wp in prev.values():
+                # if cur is visited, just skip
+                # continue
+                # # if wp is visited before, check which one cost less
+                # if cur_dist < current_cost[cur_wp]:
+                #     print('here')
+                #     current_cost[cur_wp] = cur_dist
+
+                # else:
+                #     continue
+            if cur_wp == goal:
+                print('goal reached!')
+                break
+            # else:
+                # most of the time go here
+                # current_cost[cur_wp] = cur_dist
+
+            print('cur_wp', cur_wp)
+            neighbours = self.map.neighbours(cur_wp)
+            for n_wp, n_cost, grid_value in neighbours:
+
+                n_dist = current_cost[cur_wp] + n_cost + self.heuristic(n_wp, goal) - self.heuristic(cur_wp, goal)
+                print(current_cost[cur_wp], n_cost,self.heuristic(n_wp, goal) , self.heuristic(cur_wp, goal), n_dist )
+
+                if n_wp in current_cost.keys(): # and n_dist > current_cost[n_wp]:
+                    print('visited before')
+                    continue
+                frontier.put(n_wp, n_dist)
+                prev[n_wp] = cur_wp
+                current_cost[n_wp] = n_dist
+
 
         if goal not in prev:
             raise NoPathFoundException
@@ -118,4 +152,11 @@ class Planner:
 
         '''
         # TODO
-        pass
+        path = deque()
+        path.appendleft(goal)
+        prev_wp = prev[goal]
+        while prev_wp:
+            path.appendleft(prev_wp)
+            prev_wp = prev[prev_wp]
+
+        return list(path)

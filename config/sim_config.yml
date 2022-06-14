@@ -4,7 +4,7 @@ host: '0.0.0.0'
 port: 5566
 
 # map
-map_file: '/home/jehon/Development/til-final/data/maps/map_empty_1cm.png'
+map_file: './data/maps/map_empty_1cm.png'
 map_scale: 0.01
 
 # display

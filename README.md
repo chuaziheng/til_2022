@@ -27,7 +27,12 @@ Most of the information is available in the Sphinx docs.
 pip install sphinx sphinx-autoapi sphinx-rtd-theme
 
 # build docs
-sphinx-build -b html docs/source docs/build 
+sphinx-build -b html docs/source docs/build
 ```
 
 Access the docs at `docs/build/index.html`.
+
+## Run simulator
+```
+til-simulator -c config/sim_config.yml
+```

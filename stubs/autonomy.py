@@ -3,7 +3,7 @@ import time
 from typing import List
 
 from tilsdk import *                                            # import the SDK
-from tilsdk.utilities import PIDController, SimpleMovingAverage # import optional useful things
+from tilsdk.utilities import PIDController, SimpleMovingAverage  # import optional useful things
 from tilsdk.mock_robomaster.robot import Robot                 # Use this for the simulator
 # from robomaster.robot import Robot                              # Use this for real robot
 
@@ -12,6 +12,7 @@ from cv_service import CVService, MockCVService
 from nlp_service import NLPService
 from planner import Planner
 import cv2
+import numpy as np
 
 # Setup logging in a nice readable format
 logging.basicConfig(level=logging.INFO,
@@ -43,53 +44,126 @@ def main():
 
     # Initialize planner
     map_:SignedDistanceGrid = loc_service.get_map()
+    map_ = map_.dilated(1.5*ROBOT_RADIUS_M/map_.scale)
 
     # TODO: process map?
     planner = Planner(map_, sdf_weight=0.5)
-    print('planner', planner)
 
     # Initialize variables
-    # TODO: If needed.
+    seen_clues = set()
+    curr_loi:RealLocation = None
+    path:List[RealLocation] = []
+    lois:List[RealLocation] = []
+    curr_wp:RealLocation = None
 
     # Initialize tracker
-    # TODO: Participant to tune PID controller values.
+    # TODO: Participant to tune PID controller values. Currently all 0 so it wont move when no goal
     tracker = PIDController(Kp=(0.0, 0.0), Kd=(0.0, 0.0), Ki=(0.0, 0.0))
 
-    ep_chassis = robot.chassis
+    # Initialize pose filter
+    pose_filter = SimpleMovingAverage(n=5)
+
+    # Define filter to exclude clues seen before
+    new_clues = lambda c: c.clue_id not in seen_clues
+
     # Main loop
     while True:
         # Get new data
-        ep_chassis.drive_speed(x=0.5, y=0, z=0)
+        robot.chassis.drive_speed(x=0.5, y=0, z=0)
         pose, clues = loc_service.get_pose()
+        pose = pose_filter.update(pose)
         print('clues', len(clues))
-
-        # NLP Service
-        locs = nlp_service.locations_from_clues(clues)
-        print('locs', locs)
-
-        # TODO: Call planner to get to goal location
-
-        # CV Service
-        # TODO: robot to rotate, take pic and do inference
-
         img = robot.camera.read_cv2_image(strategy='newest')
-        det = cv_service.targets_from_image(img)
-        print('det', det)
-        if det:
-            for d in det:
+
+        if not pose:
+            # not new data, continue to next iteration
+            continue
+        clues = filter(new_clues, clues)
+
+        # process clues using NLP and determine any new LOI
+        if clues:
+            new_lois = nlp_service.locations_from_clues(clues)
+            update_locations(lois, new_lois)  # TODO: implement update_locations
+            seen_clues.update([c.clue_id for c in clues])
+
+
+        # process image and detect targets
+        targets = cv_service.targets_from_image(img)
+
+        # submit targets
+        if targets:
+            for d in targets:
                 x, y, w, h = list(map(int, d.bbox))
                 cv2.rectangle(img, (x,y), (x+w,y+h), (0,255,0), 2)
                 cv2.putText(img, f'{CAT_2_NAME[d.cls]}', (x+w+10,y+h), 0, 0.3, (0,255,0))
             cv2.imwrite("./data/imgs/det.jpg", img)
-        # postprocess det
+            logging.getLogger('Main').info(f"{len(targets)} targets detected.")
+            logging.getLogger('Reporting').info(rep_service.report(pose, img, targets))
 
-        time.sleep(1)
+        if not curr_loi:
+            # if current point is not LOI
+            if len(lois) == 0:
+                logging.getLogger('Main').info('No more LOI')
+                # TODO: perform random search for new clues or targets
+            else:
+                # Get new LOI
+                lois.sort(key=lambda l: euclidean_distance(l, pose), reverse=True)
+                curr_loi = lois.pop()
+                logging.getLogger('Main').info(f"Current LOI set to: {curr_loi}")
 
-        # Submit detection
+                # Plan a path to new LOI
+                logging.getLogger('Main').info(f'Planning path to {curr_loi}')
+                path = planner.plan(pose[:2], curr_loi)
+                path.reverse()
+                curr_wp = None
+                logging.getLogger('Main').info('Path planned')
+        else:
+            # There is a current LOI goal
+            if path:
+                # Get next waypoint
+                if not curr_wp:
+                    curr_wp = path.pop()
+                    logging.getLogger('Navigation').info(f'New waypoint: {curr_wp}')
 
-        # TODO: use tracker to continue exploring the grid
+                # calculate distance and heading to waypoint
+                dist_to_wp = euclidean_distance(pose, curr_wp)
+                ang_to_wp = np.degrees(np.arctan2(curr_wp[1]-pose[1], curr_wp[0]-pose[0]))
+                ang_diff = -(ang_to_wp - pose[2])  # body frame
 
+                # ensure ang_diff is in [180, 180]
+                if ang_diff < -180:
+                    ang_diff += 360
+                if ang_diff > 180:
+                    ang_diff -= 360
 
+                logging.getLogger('Navigation').debug(f'ang_to_wp: {ang_to_wp}, hdg: {pose[2]}, ang_diff: {ang_diff}')
+
+                # consider waypoint reached if within a threshold distance
+                if dist_to_wp < REACHED_THRESHOLD_M:
+                    logging.getLogger('Navigation').info(f'Reached wp: {curr_wp}')
+                    tracker.reset()
+                    curr_wp = None
+                    continue
+
+                # Determine velocity commands given distance and heading to waypoint
+                vel_cmd = tracker.update((dist_to_wp, ang_diff))
+
+                # reduce x velocity
+                vel_cmd[0] *= np.cos(np.radians(ang_diff))
+
+                # if robot is facing the wrong dir, turn to face waypoint first before moving forward
+                if abs(ang_diff) > ANGLE_THRESHOLD_DEG:
+                    vel_cmd[0] = 0.0
+
+                # send command to robot
+                robot.chassis.drive_speed(x=vel_cmd[0], z=vel_cmd[1])
+
+            else:
+                logging.getLogger('Navigation').info('End of path')
+                curr_loi = None
+
+                # TODO: perform search behavior
+                continue
 
     robot.chassis.drive_speed(x=0.0, y=0.0, z=0.0)  # set stop for safety
     logging.getLogger('Main').info('Mission Terminated.')

@@ -23,8 +23,8 @@ class NLPService:
         self.model_dir = model_dir
         self.model_path = os.path.join(self.model_dir, 'checkpoint-2270')
         self.sampling_rate = 16000
-        self.feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(self.model_path)
-        self.model = HubertForSpeechClassification.from_pretrained(self.model_path)
+        # self.feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(self.model_path)
+        # self.model = HubertForSpeechClassification.from_pretrained(self.model_path)
 
     # def speech_file_to_array_fn(self, path, sampling_rate):
     #     speech_array, _sampling_rate = torchaudio.load(path)
@@ -67,7 +67,7 @@ class NLPService:
             locations.append(clue.location)
 
             waveform, sr = sf.read(BytesIO(clue.audio))
-            
+
             # speech, sr = torchaudio.load(audio)
             # speech = speech[0].numpy().squeeze()
             # speech = librosa.resample(np.asarray(speech), sr, self.sampling_rate)

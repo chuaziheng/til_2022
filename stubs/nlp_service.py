@@ -4,9 +4,11 @@ import onnxruntime as ort
 import os
 import torchaudio
 import librosa
-import torch.nn.functional as F
-from transformers import Wav2Vec2FeatureExtractor
-from NLPModels import HubertForSpeechClassification
+import soundfile as sf
+from io import BytesIO
+# import torch.nn.functional as F
+# from transformers import Wav2Vec2FeatureExtractor
+# from NLPModels import HubertForSpeechClassification
 
 class NLPService:
     def __init__(self, model_dir:str):
@@ -24,22 +26,22 @@ class NLPService:
         self.feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(self.model_path)
         self.model = HubertForSpeechClassification.from_pretrained(self.model_path)
 
-    def speech_file_to_array_fn(self, path, sampling_rate):
-        speech_array, _sampling_rate = torchaudio.load(path)
-        resampler = torchaudio.transforms.Resample(_sampling_rate)
-        speech = resampler(speech_array).squeeze().numpy()
-        return speech
+    # def speech_file_to_array_fn(self, path, sampling_rate):
+    #     speech_array, _sampling_rate = torchaudio.load(path)
+    #     resampler = torchaudio.transforms.Resample(_sampling_rate)
+    #     speech = resampler(speech_array).squeeze().numpy()
+    #     return speech
 
 
-    def predict(self, path, sampling_rate):
-        speech = self.speech_file_to_array_fn(path, sampling_rate)
-        features = self.feature_extractor(speech, sampling_rate=sampling_rate, return_tensors="pt", padding=True)
-        input_values = features.input_values
+    # def predict(self, path, sampling_rate):
+    #     speech = self.speech_file_to_array_fn(path, sampling_rate)
+    #     features = self.feature_extractor(speech, sampling_rate=sampling_rate, return_tensors="pt", padding=True)
+    #     input_values = features.input_values
 
-        logits = self.model(input_values).logits
+    #     logits = self.model(input_values).logits
 
-        scores = F.softmax(logits, dim=1).detach().cpu().numpy()[0]
-        return scores
+    #     scores = F.softmax(logits, dim=1).detach().cpu().numpy()[0]
+    #     return scores
 
 
     def locations_from_clues(self, clues:Iterable[Clue]) -> List[RealLocation]:
@@ -63,12 +65,14 @@ class NLPService:
         locations = []
         for clue in clues:
             locations.append(clue.location)
-            audio = clue.audio  # how to process bytes
-            speech, sr = torchaudio.load(audio)
-            speech = speech[0].numpy().squeeze()
-            speech = librosa.resample(np.asarray(speech), sr, self.sampling_rate)
-            outputs = self.predict(audio, self.sampling_rate)
-            return outputs.argmax()
+
+            waveform, sr = sf.read(BytesIO(clue.audio))
+            
+            # speech, sr = torchaudio.load(audio)
+            # speech = speech[0].numpy().squeeze()
+            # speech = librosa.resample(np.asarray(speech), sr, self.sampling_rate)
+            # outputs = self.predict(audio, self.sampling_rate)
+            # pred_class = outputs.argmax()
 
         return locations
 class MockNLPService:

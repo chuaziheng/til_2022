@@ -43,7 +43,6 @@ class NLPService:
     #     scores = F.softmax(logits, dim=1).detach().cpu().numpy()[0]
     #     return scores
 
-
     def locations_from_clues(self, clues:Iterable[Clue]) -> List[RealLocation]:
         '''Process clues and get locations of interest.
 
@@ -67,6 +66,7 @@ class NLPService:
             locations.append(clue.location)
 
             waveform, sr = sf.read(BytesIO(clue.audio))
+            print('in nlp service')
 
             # speech, sr = torchaudio.load(audio)
             # speech = speech[0].numpy().squeeze()
@@ -75,6 +75,8 @@ class NLPService:
             # pred_class = outputs.argmax()
 
         return locations
+
+
 class MockNLPService:
     '''Mock NLP Service.
 

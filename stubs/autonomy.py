@@ -68,7 +68,10 @@ def main():
 
     # Initialize tracker
     # TODO: Participant to tune PID controller values. Currently all 0 so it wont move when no goal
-    tracker = PIDController(Kp=(2.0, 2.0), Kd=(0.0, 0.0), Ki=(0.0, 0.0))
+    # https://students.iitk.ac.in/robocon/docs/doku.php?id=robocon16:programming:pid_controller#:~:text=The%20process%20of%20tuning%20is,to%20set%20ki%20or%20kd.
+    # set Kp first, if need then half kp, set ki
+    # if really need then set kd
+    tracker = PIDController(Kp=(1.0, 1.0), Kd=(0.0, 0.0), Ki=(0.5, 0.5))
 
     # Initialize pose filter
     pose_filter = SimpleMovingAverage(n=5)
@@ -115,6 +118,7 @@ def main():
             if len(lois) == 0:
                 logging.getLogger('Main').info('No more locations of interest.')
                 # TODO: You ran out of LOIs. You could perform and random search for new
+                
                 break
             else:
                 # Get new LOI
@@ -179,7 +183,7 @@ def main():
                 logging.getLogger('Navigation').info('End of path.')
                 curr_loi = None
 
-                # TODO: Perform search behaviour? Participant to complete.
+                # TODO: Implement right wall hug until clue is found
 
                 continue
 

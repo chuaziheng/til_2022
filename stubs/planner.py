@@ -12,15 +12,15 @@ class NoPathFoundException(Exception):
 
 class PriorityQueue:
     def __init__(self):
-        self.elements = []
+        self.elements: List[Tuple[float, T]] = []
 
     def is_empty(self) -> bool:
         return not self.elements
 
-    def put(self, item, priority):
+    def put(self, item: T, priority: float):
         heapq.heappush(self.elements, (priority, item))
 
-    def get(self):
+    def get(self) -> T:
         return heapq.heappop(self.elements)[1]
 
 class Planner:
@@ -51,6 +51,7 @@ class Planner:
             Goal location
         '''
         return euclidean_distance(a, b)
+        # TODO: try manhattan
 
 
     def plan(self, start:RealLocation, goal:RealLocation) -> List[RealLocation]:
@@ -108,32 +109,20 @@ class Planner:
             # cur_wp, cur_dist = frontier.get()
             cur_wp = frontier.get()
 
-            # if cur_wp in prev.values():
-                # if cur is visited, just skip
-                # continue
-                # # if wp is visited before, check which one cost less
-                # if cur_dist < current_cost[cur_wp]:
-                #     print('here')
-                #     current_cost[cur_wp] = cur_dist
-
-                # else:
-                #     continue
             if cur_wp == goal:
                 print('goal reached!')
                 break
-            # else:
-                # most of the time go here
-                # current_cost[cur_wp] = cur_dist
+
 
             print('cur_wp', cur_wp)
             neighbours = self.map.neighbours(cur_wp)
             for n_wp, n_cost, grid_value in neighbours:
 
                 n_dist = current_cost[cur_wp] + n_cost + self.heuristic(n_wp, goal) - self.heuristic(cur_wp, goal)
-                print(current_cost[cur_wp], n_cost,self.heuristic(n_wp, goal) , self.heuristic(cur_wp, goal), n_dist )
+                # print(current_cost[cur_wp], n_cost,self.heuristic(n_wp, goal) , self.heuristic(cur_wp, goal), n_dist )
 
-                if n_wp in current_cost.keys(): # and n_dist > current_cost[n_wp]:
-                    print('visited before')
+                if n_wp in current_cost.keys():
+                    # print('visited before')
                     continue
                 frontier.put(n_wp, n_dist)
                 prev[n_wp] = cur_wp
@@ -151,7 +140,6 @@ class Planner:
         '''Traces traversed locations to reconstruct path
 
         '''
-        # TODO
         path = deque()
         path.appendleft(goal)
         prev_wp = prev[goal]

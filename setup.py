@@ -34,7 +34,9 @@ setuptools.setup(
         'librosa >= 0.9.1',
         'tensorflow >= 2.8.0',
         'termcolor',
-        'flask'
+        'flask',
+        'torchvision',
+        'torchaudio'
     ],
     entry_points = {
         'console_scripts': [

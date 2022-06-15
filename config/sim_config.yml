@@ -5,15 +5,16 @@ port: 5566
 
 # map
 # map_file: 'C:\Users\chuaz\til_2022\data\maps\map_empty_1cm.png'
-map_file: 'C:\Users\chuaz\til_2022\data\maps\map_complex_1cm.png'
-map_scale: 0.01
+# map_file: 'C:\Users\chuaz\til_2022\data\maps\map_complex_1cm.png'
+map_file: 'C:\Users\chuaz\til_2022\data\maps\test_5cm.png'
+map_scale: 0.05 # 0.01
 
 # display
-robot_radius: 10
+robot_radius: 2  # 10
 
 # simulation
 start_pose:
-  x: 1.0
+  x: 2.4
   y: 1.0
   z: 0.5
 use_noisy_pose: off
@@ -32,19 +33,19 @@ log_level: 'debug'
 clues:
   - clue_id: 2
     trigger:
-      x: 1.0
+      x: 2.4
       y: 1.0
       r: 0.5
     location:
-      x: 2.0
-      y: 2.0
+      x: 2.2
+      y: 1.8
     audio_file: 'data/audio/SM4_F48_A0100.wav'
 
 # targets
 targets:
   - target_id: 3
     trigger:
-      x: 1.5
-      y: 1.0
+      x: 2.2
+      y: 1.8
       r: 0.2
     image_file: 'data/imgs/fallen_person.jpeg'

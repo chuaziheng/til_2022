@@ -21,7 +21,7 @@ class CVService:
         self.model_dir = model_dir
         self.model_path = os.path.join(self.model_dir, 'frcnn.onnx')
         self.session =  ort.InferenceSession(self.model_path, providers=['CUDAExecutionProvider',  'CPUExecutionProvider',])
-        self.det_threshold = 0.9
+        self.det_threshold = 0.95
 
     def targets_from_image(self, img) -> List[DetectedObject]:
         '''Process image and return targets.

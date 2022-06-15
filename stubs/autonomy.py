@@ -15,7 +15,7 @@ import cv2
 import numpy as np
 
 # Setup logging in a nice readable format
-logging.basicConfig(level=logging.INFO,
+logging.basicConfig(level=logging.DEBUG,
                     format='[%(levelname)5s][%(asctime)s][%(name)s]: %(message)s',
                     datefmt='%H:%M:%S')
 
@@ -68,7 +68,7 @@ def main():
 
     # Initialize tracker
     # TODO: Participant to tune PID controller values. Currently all 0 so it wont move when no goal
-    tracker = PIDController(Kp=(0.0, 0.0), Kd=(0.0, 0.0), Ki=(0.0, 0.0))
+    tracker = PIDController(Kp=(2.0, 2.0), Kd=(0.0, 0.0), Ki=(0.0, 0.0))
 
     # Initialize pose filter
     pose_filter = SimpleMovingAverage(n=5)
@@ -126,6 +126,7 @@ def main():
                 logging.getLogger('Main').info('Planning path to: {}'.format(curr_loi))
                 path = planner.plan(pose[:2], curr_loi)
                 path.reverse() # reverse so closest wp is last so that pop() is cheap
+                print(path)
                 curr_wp = None
                 logging.getLogger('Main').info('Path planned.')
         else:

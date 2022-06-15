@@ -32,7 +32,15 @@ sphinx-build -b html docs/source docs/build
 
 Access the docs at `docs/build/index.html`.
 
+## Get model weights
+Download `frcnn.onnx`  https://drive.google.com/file/d/1KPGgrLXAcj5OTTF7tyGQOjeak2GABHWA/view and place in `data/models/cv/`
+
 ## Run simulator
 ```
 til-simulator -c config/sim_config.yml
+```
+
+## Run robot script
+```
+python ./stubs/autonomy.py
 ```

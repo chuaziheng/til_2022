@@ -15,8 +15,8 @@ robot_radius: 2  # 10
 
 # simulation
 start_pose:
-  x: 2.5
-  y: 1.0
+  x: 3.0
+  y: 0.5
   z: 0.5
 use_noisy_pose: off
 robot_phy_length: 0.32
@@ -34,12 +34,12 @@ log_level: 'debug'
 clues:
   - clue_id: 2
     trigger:
-      x: 2.5
+      x: 3.0
       y: 1.0
-      r: 0.5
+      r: 0.3
     location:
-      x: 2.5
-      y: 1.8
+      x: 2.3
+      y: 1.5
     audio_file: 'data/audio/SM4_F48_A0100.wav'
   - clue_id: 3
     trigger:
@@ -55,7 +55,7 @@ clues:
 targets:
   - target_id: 10
     trigger:
-      x: 2.5
-      y: 1.8
+      x: 2.3
+      y: 1.5
       r: 0.2
-    image_file: 'data/imgs/fallen_person.jpeg'
+    image_file: 'data/img/fallen_person.jpeg'

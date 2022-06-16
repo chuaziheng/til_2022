@@ -122,8 +122,13 @@ class Planner:
                 # print(current_cost[cur_wp], n_cost,self.heuristic(n_wp, goal) , self.heuristic(cur_wp, goal), n_dist )
 
                 if n_wp in current_cost.keys():
+                    if n_dist < current_cost[n_wp]:
+                        current_cost[n_wp] = n_dist
+                        prev[n_wp] = cur_wp
                     # print('visited before')
-                    continue
+                    else:
+                        continue
+                    # continue
                 frontier.put(n_wp, n_dist)
                 prev[n_wp] = cur_wp
                 current_cost[n_wp] = n_dist

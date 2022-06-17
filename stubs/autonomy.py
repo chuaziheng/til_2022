@@ -44,7 +44,8 @@ def update_locations(old:List[RealLocation], new:List[RealLocation]) -> None:
 def get_random_loi(map_) -> RealLocation:
     while True:
         # width, height = random.randint(0, map_.width / 2), random.randint(0, map_.height)
-        width, height = 60, 80
+        # width, height = 60, 80
+        width, height = 30, 30
         random_grid_loc = GridLocation(width, height)
         if map_.passable(random_grid_loc) and map_.in_bounds(random_grid_loc):
             break
@@ -88,7 +89,8 @@ def main():
     # https://students.iitk.ac.in/robocon/docs/doku.php?id=robocon16:programming:pid_controller#:~:text=The%20process%20of%20tuning%20is,to%20set%20ki%20or%20kd.
     # set Kp first, if need then half kp, set ki
     # if really need then set kd
-    tracker = PIDController(Kp=(0.25, 0.25), Kd=(0.0, 0.0), Ki=(0.0, 0.0))
+    # tracker = PIDController(Kp=(0.25, 0.25), Kd=(0.0, 0.0), Ki=(0.0, 0.0))
+    tracker = PIDController(Kp=(0.25, 0.25), Kd=(0.1, 0.01), Ki=(0.05, 0.05))
     # tracker = PIDController(Kp=(0.0, 0.0), Kd=(0.0, 0.0), Ki=(0.0, 0.0))
 
     # Initialize pose filter
@@ -133,12 +135,12 @@ def main():
             logging.getLogger('Main').info('{} targets detected.'.format(len(targets)))
             logging.getLogger('Reporting').info(rep_service.report(pose, img, targets))
 
-            # For viz
             for d in targets:
                 x, y, w, h = list(map(int, d.bbox))
-                cv2.rectangle(img, (x,y), (x+w,y+h), (0,255,0), 2)
-                cv2.putText(img, f'{CAT_2_NAME[d.cls]}', (x+w+10,y+h), 0, 0.3, (0,255,0))
-            cv2.imwrite("./data/imgs/det.jpg", img)
+                cv2.rectangle(img, (int(x-w/2), int(y-h/2)), (int(x+w/2), int(y+h/2)), (0,255,0), 2)
+                cv2.circle(img, (x, y), 1, (0, 255, 0))
+                cv2.putText(img, f'{CAT_2_NAME[d.cls]}', (x+int(w/2)+10,y+int(h/2)), 0, 0.3, (0,255,0))
+            cv2.imwrite(f"./data/imgs/det.jpg", img)
 
         if not curr_loi:
             if len(lois) == 0:
@@ -234,8 +236,9 @@ def main():
                     # For viz
                     for d in targets:
                         x, y, w, h = list(map(int, d.bbox))
-                        cv2.rectangle(img, (x,y), (x+w,y+h), (0,255,0), 2)
-                        cv2.putText(img, f'{CAT_2_NAME[d.cls]}', (x+w+10,y+h), 0, 0.3, (0,255,0))
+                        cv2.rectangle(img, (int(x-w/2), int(y-h/2)), (int(x+w/2), int(y+h/2)), (0,255,0), 2)
+                        cv2.circle(img, (x, y), 1, (0, 255, 0))
+                        cv2.putText(img, f'{CAT_2_NAME[d.cls]}', (x+int(w/2)+10,y+int(h/2)), 0, 0.3, (0,255,0))
                     cv2.imwrite(f"./data/imgs/det{i}.jpg", img)
 
                 # TODO: Rotate all directions to capture target

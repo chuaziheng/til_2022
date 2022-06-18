@@ -11,7 +11,8 @@ from tilsdk.mock_robomaster.robot import Robot                 # Use this for th
 # from robomaster.robot import Robot                              # Use this for real robot
 
 # Import your code
-from cv_service import CVService, MockCVService
+# from cv_service_torch import CVService, MockCVService  # using pytorch
+from cv_service import CVService, MockCVService  # using onnx
 from nlp_service import NLPService
 from planner import Planner
 import cv2
@@ -30,7 +31,7 @@ ANGLE_THRESHOLD_DEG = 20.0  # TODO: Participant may tune.
 ROBOT_RADIUS_M = 0.17       # TODO: Participant may tune.
 NLP_MODEL_DIR = 'data/models/nlp'          # TODO: Participant to fill in.
 CV_MODEL_DIR = 'data/models/cv'           # TODO: Participant to fill in.
-CAT_2_NAME = {1: 'Fallen', 2: 'Standing'}
+CAT_2_NAME = {1: 'Fallen', 0: 'Standing'}
 
 # Convenience function to update locations of interest.
 def update_locations(old:List[RealLocation], new:List[RealLocation]) -> None:
@@ -128,7 +129,9 @@ def main():
             seen_clues.update([c[0] for c in clues])
 
         # Process image and detect targets
+        start = time.time()
         targets = cv_service.targets_from_image(img)
+        print('CV inference time', time.time() - start)
 
         # Submit targets
         if targets:

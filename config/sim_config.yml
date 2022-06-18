@@ -58,4 +58,5 @@ targets:
       x: 1.75
       y: 0.6
       r: 0.2
-    image_file: 'data/imgs/challenge_fallen.jpeg'
+    # image_file: 'data/imgs/challenge_fallen.jpeg'
+    image_file: 'data/imgs/sample_easy_fallen.jpg'

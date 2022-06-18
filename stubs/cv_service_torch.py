@@ -4,7 +4,9 @@ import onnxruntime as ort
 import os
 import cv2
 import numpy as np
+import torchvision
 from torchvision import transforms
+# from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 import torch
 
 class CVService:
@@ -17,16 +19,28 @@ class CVService:
         '''
 
         # TODO: Participant to complete.
-        print('using ONNX for CV')
+        print('using torch for CV')
+
         self.model_dir = model_dir
-        self.model_path = os.path.join(self.model_dir, 'frcnn_og.onnx')
-        self.session =  ort.InferenceSession(self.model_path, providers=['CUDAExecutionProvider',  'CPUExecutionProvider',])
-        self.det_threshold = 0.6  # TODO: decide on good det_threshold
+        self.model_path = os.path.join(self.model_dir, 'frcnn_torch_og.pt')
+        self.det_threshold = 0.6  # # TODO: decide on good det_threshold
         self.input_size = 720 # 800
         self.id = 0
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        print('device', self.device)
+        # from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
+        # num_classes = 3
 
-    def to_numpy(self, tensor):
-        return tensor.detach().cpu().numpy() if tensor.requires_grad else tensor.cpu().numpy()
+        # self.model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=False)  # ,trainable_backbone_layers=1
+        # in_features = self.model.roi_heads.box_predictor.cls_score.in_features
+        # self.model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
+        # self.model.transform.min_size = (720,)
+        # self.model.transform.max_size = 720
+        # self.model.load_state_dict(torch.load(self.model_path, map_location=self.device))
+        self.model = torch.load(self.model_path, map_location=torch.device(self.device))
+        self.model.to(self.device)
+        self.model.eval()
+
 
     def targets_from_image(self, img: np.array) -> List[DetectedObject]:
         '''Process image and return targets.
@@ -57,41 +71,27 @@ class CVService:
 
         # res = []
         candidates = []
-        h, w = img.shape[0], img.shape[1]
-        img_tensor = transforms.Compose([
-                                 transforms.ToPILImage(),
-                                 transforms.Resize((720, 720)),
-                                 transforms.ToTensor()
-        ])(img)
-        img_np = self.to_numpy(img_tensor)
+        # h, w = img.shape[0], img.shape[1]
 
-        # img = img.astype(np.float32)
-        # img = cv2.resize(img, dsize=(self.input_size, self.input_size),interpolation=cv2.INTER_AREA)
-        # img = np.transpose(img, (2, 0, 1))
-        # img = img / 255
+        with torch.no_grad():
+            img_tensor = transforms.ToTensor()(img)
+            img_preds = self.model([img_tensor.to(self.device)])[0]
 
-        ort_inputs = {self.session.get_inputs()[0].name: img_np}
-        ort_outs = self.session.run(None, ort_inputs)
-        for i in range(len(ort_outs[0])):
-            x1, y1, x2, y2 = ort_outs[0][i]
-            x1 *= (w/self.input_size)
-            x2 *= (w/self.input_size)
-            y1 *= (h/self.input_size)
-            y2 *= (h/self.input_size)
+            for i in range(len(img_preds["boxes"])):
+                x1, y1, x2, y2 = img_preds["boxes"][i]
+                label = int(img_preds["labels"][i])
+                score = float(img_preds["scores"][i])
 
-            # frcnn
-            label = int(ort_outs[1][i])
-            if label == 2:
-                label = 0
-            score = float(ort_outs[2][i])
-            width = int(x2 - x1)
-            height = int(y2 - y1)
-            x = int((x1+x2) / 2)
-            y = int((y1+y2) / 2)
+                if label == 2:
+                    label = 0
+                width = int(x2 - x1)
+                height = int(y2 - y1)
+                x = int((x1+x2) / 2)
+                y = int((y1+y2) / 2)
 
-            area = width*height
-            bbox = BoundingBox(x, y, width, height)  # x_center, y_center, w, h
-            candidates.append((score, area, bbox, label))
+                area = width*height
+                bbox = BoundingBox(x, y, width, height)  # x_center, y_center, w, h
+                candidates.append((score, area, bbox, label))
 
         target = self.postprocess_candidates(candidates)
         self.id += 1
@@ -112,13 +112,15 @@ class CVService:
 
         candidates = sorted(candidates, reverse=True, key=lambda x:x[0])
 
-        # APPROACH 1: using highest score
+        # APPROACH 1: use highest score
 
         chosen = candidates[0]
         print('score', chosen[0])
 
-        # APPROACH 2: using candidate rule
-        # get 0-3 candidates
+
+        # APPROACH 2: use candidate rules
+
+        # # get 0-3 candidates
         # top_candidates = candidates[:min(3, len(candidates))]
 
         # # if top candidate is more than 0.1 score higher than the second top, return top
@@ -129,9 +131,7 @@ class CVService:
         #     print('taking largest area')
         #     top_candidates = sorted(top_candidates, reverse=True, key=lambda x:x[1])
         #     chosen = top_candidates[0]
-
-
-        return DetectedObject(str(self.id), chosen[3], chosen[2])
+        return DetectedObject(self.id, chosen[3], chosen[2])
 
 
 

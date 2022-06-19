@@ -10,7 +10,6 @@ from tilsdk.utilities import PIDController, SimpleMovingAverage  # import option
 from tilsdk.mock_robomaster.robot import Robot                 # Use this for the simulator
 # from robomaster.robot import Robot                              # Use this for real robot
 
-# Import your code
 # from cv_service_torch import CVService, MockCVService  # using pytorch
 from cv_service import CVService, MockCVService  # using onnx
 from nlp_service import NLPService
@@ -44,13 +43,24 @@ def update_locations(old:List[RealLocation], new:List[RealLocation]) -> None:
 
 def get_random_loi(map_) -> RealLocation:
     while True:
-        # width, height = random.randint(0, map_.width / 2), random.randint(0, map_.height)
+        width, height = random.randint(0, map_.width / 2), random.randint(0, map_.height)
         # width, height = 60, 80
-        width, height = 30, 30
+        # width, height = 30, 30
         random_grid_loc = GridLocation(width, height)
         if map_.passable(random_grid_loc) and map_.in_bounds(random_grid_loc):
             break
     return map_.grid_to_real(random_grid_loc)
+
+# def get_all_points(map_) -> List[RealLocation]:
+#     all_points = []
+#     width, height = int(map_.width / 2), (map_.height)
+#     for w in range(width):
+#         for h in range(height):
+#             grid_loc = GridLocation(w, h)
+#             if map_.passable(grid_loc) and map_.in_bounds(grid_loc):
+#                 all_points.append(map_.grid_to_real(grid_loc))
+#     return all_points
+
 
 def main():
     # Initialize services
@@ -153,9 +163,10 @@ def main():
                 # pick a random RealLocation to go to, and go until a clue is found
                 random_loi: RealLocation = get_random_loi(map_)
                 print('###################', random_loi, map_.real_to_grid(random_loi))
-                time.sleep(1)
+                # time.sleep(1)
                 lois.append(random_loi)
-                # break
+
+                # TODO: add dfs stuff here
             else:
                 # Get new LOI
                 lois.sort(key=lambda l: euclidean_distance(l, pose), reverse=True)

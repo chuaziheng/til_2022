@@ -7,7 +7,7 @@ import librosa
 import soundfile as sf
 from io import BytesIO
 import tensorflow as tf
-import panndas as pd
+import pandas as pd
 from sklearn.preprocessing import StandardScaler
 # import torch.nn.functional as F
 # from transformers import Wav2Vec2FeatureExtractor
@@ -24,7 +24,7 @@ class NLPService:
 
         # TODO: Participant to complete.
         self.model_dir = model_dir
-        self.model_path = os.path.join(self.model_dir, 'speech.h5')      
+        self.model_path = os.path.join(self.model_dir, 'speech.h5')
         self.model = tf.keras.models.load_model(self.model_path)
         self.CLASS_2_LABEL = {0: 'angry', 1: 'sad', 2: 'neutral', 3: 'happy', 4: 'fear'}
         # self.LABEL_2_CLASS = {'angry': 0, 'fear': 4, 'happy': 3, 'neutral': 2, 'sad': 1}
@@ -70,8 +70,6 @@ class NLPService:
         print('in nlp service')
 
         for clue in clues:
-            # locations.append(clue.location)
-
             waveform, sr = sf.read(BytesIO(clue.audio))
             res1 = extract_features(waveform, sr)
             result = np.array(res1)
@@ -86,11 +84,8 @@ class NLPService:
             if pred_lab =='angry' or pred_lab=='sad':
                 locations.append(clue.location)
 
-            # speech, sr = torchaudio.load(audio)
-            # speech = speech[0].numpy().squeeze()
-            # speech = librosa.resample(np.asarray(speech), sr, self.sampling_rate)
-            # outputs = self.predict(audio, self.sampling_rate)
-            # pred_class = outputs.argmax()
+            # locations.append(clue.location)  # for debug
+
 
         return locations
 

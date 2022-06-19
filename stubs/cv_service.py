@@ -19,9 +19,9 @@ class CVService:
         # TODO: Participant to complete.
         print('using ONNX for CV')
         self.model_dir = model_dir
-        self.model_path = os.path.join(self.model_dir, 'frcnn_og.onnx')
+        self.model_path = os.path.join(self.model_dir, 'frcnn.onnx')  # TODO: try other models
         self.session =  ort.InferenceSession(self.model_path, providers=['CUDAExecutionProvider',  'CPUExecutionProvider',])
-        self.det_threshold = 0.6  # TODO: decide on good det_threshold
+        self.det_threshold = 0.8  # TODO: decide on good det_threshold
         self.input_size = 720 # 800
         self.id = 0
 
@@ -113,23 +113,21 @@ class CVService:
         candidates = sorted(candidates, reverse=True, key=lambda x:x[0])
 
         # APPROACH 1: using highest score
-
-        chosen = candidates[0]
-        print('score', chosen[0])
+        # chosen = candidates[0]
 
         # APPROACH 2: using candidate rule
-        # get 0-3 candidates
-        # top_candidates = candidates[:min(3, len(candidates))]
+        top_candidates = candidates[:min(3, len(candidates))]
 
-        # # if top candidate is more than 0.1 score higher than the second top, return top
-        # if top_candidates[0][0] - top_candidates[0][1] > 0.1:
-        #     print('top candidate score much better')
-        #     chosen = top_candidates[0]
-        # else:
-        #     print('taking largest area')
-        #     top_candidates = sorted(top_candidates, reverse=True, key=lambda x:x[1])
-        #     chosen = top_candidates[0]
+        # if top candidate is more than 0.1 score higher than the second top, return top
+        if top_candidates[0][0] - top_candidates[0][1] > 0.1:
+            print('top candidate score much better')
+            chosen = top_candidates[0]
+        else:
+            print('taking largest area')
+            top_candidates = sorted(top_candidates, reverse=True, key=lambda x:x[1])
+            chosen = top_candidates[0]
 
+        print('score', chosen[0])
 
         return DetectedObject(str(self.id), chosen[3], chosen[2])
 

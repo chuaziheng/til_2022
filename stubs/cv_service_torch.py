@@ -22,8 +22,8 @@ class CVService:
         print('using torch for CV')
 
         self.model_dir = model_dir
-        self.model_path = os.path.join(self.model_dir, 'frcnn_torch_og.pt')
-        self.det_threshold = 0.6  # # TODO: decide on good det_threshold
+        self.model_path = os.path.join(self.model_dir, 'frcnn_torch.pt')
+        self.det_threshold = 0.95  # # TODO: decide on good det_threshold (torch generally more confident)
         self.input_size = 720 # 800
         self.id = 0
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

@@ -37,7 +37,8 @@ setuptools.setup(
         'termcolor',
         'flask',
         'torchvision',
-        'torchaudio'
+        'torchaudio',
+       'pandas==0.25.3'
     ],
     entry_points = {
         'console_scripts': [

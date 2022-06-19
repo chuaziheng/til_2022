@@ -121,7 +121,7 @@ def main():
     lois:List[RealLocation] = []
     curr_wp:RealLocation = None
     not_visited_set: Set[GridLocation] = get_all_points(map_)
-    print('not visited set', not_visited_set)
+    # print('not visited set', not_visited_set)
     print('not visited set len', len(not_visited_set))
 
     random_exploration_mode:bool = False
@@ -172,7 +172,8 @@ def main():
 
         # Process image and detect targets
         start = time.time()
-        targets = cv_service.targets_from_image(img)
+        # targets = cv_service.targets_from_image(img)
+        targets = []  # for faster movement
         print('CV inference time', time.time() - start)
 
         # Submit targets
@@ -202,9 +203,11 @@ def main():
                 # dfs with global not_visited method
                 print('getting random exploration path...')
                 path = get_dfs_path(pose[:2], not_visited_set, map_)
-                print('path len', len(path))
+                path.reverse()
                 print('random exploration path', path)
-                curr_loi = path[-1]
+                print('path len', len(path))
+
+                curr_loi = path[0]
                 curr_wp = None
 
                 # TODO: add dfs stuff here

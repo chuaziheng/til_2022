@@ -1,3 +1,4 @@
+from inspect import stack
 from tkinter import Grid
 from typing import List, Tuple, TypeVar, Dict
 from xmlrpc.client import Boolean
@@ -55,7 +56,7 @@ class Planner:
         # TODO: try manhattan
 
 
-    def plan(self, start:RealLocation, goal:RealLocation, randomMode) -> List[RealLocation]:
+    def plan(self, start:RealLocation, goal:RealLocation) -> List[RealLocation]:
         '''Plan in real coordinates.
 
         Raises NoPathFileException path is not found.
@@ -73,10 +74,10 @@ class Planner:
             List of RealLocation from start to goal.
         '''
 
-        path = self.plan_grid(self.map.real_to_grid(start), self.map.real_to_grid(goal), randomMode)
+        path = self.plan_grid(self.map.real_to_grid(start), self.map.real_to_grid(goal))
         return [self.map.grid_to_real(wp) for wp in path]
 
-    def plan_grid(self, start:GridLocation, goal:GridLocation, randomMode) -> List[GridLocation]:
+    def plan_grid(self, start:GridLocation, goal:GridLocation) -> List[GridLocation]:
         '''Plan in grid coordinates.
 
         Raises NoPathFileException path is not found.
@@ -98,48 +99,19 @@ class Planner:
             raise RuntimeError('Planner map is not initialized.')
 
         # TODO: Participant to complete.
-        print('current random mode: ', randomMode)
-        #A STAR CODE
-        frontier = PriorityQueue()
-        frontier.put(start, 0 + self.heuristic(start, goal))
-        prev: Dict[GridLocation, GridLocation] = {}  # {cur: prev}
-        current_cost: Dict[GridLocation, float] = {}
-        prev[start] = None
-        current_cost[start] = 0 + self.heuristic(start, goal)
+        # print('current random mode: ', randomMode)
 
-        while not frontier.is_empty():
-            # TODO: Participant to complete
-            # cur_wp, cur_dist = frontier.get()
-            cur_wp = frontier.get()
-
-            if cur_wp == goal:
-                print('goal reached!')
-                break
-
-
-            print('cur_wp', cur_wp)
-            neighbours = self.map.neighbours(cur_wp)
-            for n_wp, n_cost, grid_value in neighbours:
-
-                n_dist = current_cost[cur_wp] + n_cost + self.heuristic(n_wp, goal) - self.heuristic(cur_wp, goal)
-                # print(current_cost[cur_wp], n_cost,self.heuristic(n_wp, goal) , self.heuristic(cur_wp, goal), n_dist )
-
-                if n_wp in current_cost.keys():
-                    if n_dist < current_cost[n_wp]:
-                        current_cost[n_wp] = n_dist
-                        prev[n_wp] = cur_wp
-                    # print('visited before')
-                    else:
-                        continue
-                    # continue
-                frontier.put(n_wp, n_dist)
-                prev[n_wp] = cur_wp
-                current_cost[n_wp] = n_dist
-
-
-        if goal not in prev:
-            raise NoPathFoundException
+        # if randomMode == False: # => do A*
+        prev = self.astar(start, goal)
         return self.reconstruct_path(prev, start, goal)
+
+        #if randomMode == True: # => do DFS
+        # path = self.dfs(start, goal)
+        # if path == None:
+        #     raise NoPathFoundException
+        # return path
+    
+        
 
     def reconstruct_path(self,
                         prev:Dict[GridLocation, GridLocation],
@@ -156,3 +128,77 @@ class Planner:
             prev_wp = prev[prev_wp]
 
         return list(path)
+
+    def astar(self, 
+              start:GridLocation,
+              goal:GridLocation) -> Dict[GridLocation, GridLocation]:
+        '''A* Path Finding Algorithm
+
+        '''  
+        frontier = PriorityQueue()
+        frontier.put(start, 0 + self.heuristic(start, goal))
+        prev: Dict[GridLocation, GridLocation] = {}  # {cur: prev}
+        current_cost: Dict[GridLocation, float] = {}
+        prev[start] = None
+        current_cost[start] = 0 + self.heuristic(start, goal)
+
+        while not frontier.is_empty():
+            # TODO: Participant to complete
+            # cur_wp, cur_dist = frontier.get()
+            cur_wp = frontier.get()
+
+            if cur_wp == goal:
+                print('goal reached!')
+                break
+
+            # print('cur_wp', cur_wp)
+            neighbours = self.map.neighbours(cur_wp)
+            for n_wp, n_cost, grid_value in neighbours:
+                    
+                #f = g + h
+                n_dist = current_cost[cur_wp] + n_cost + self.heuristic(n_wp, goal) - self.heuristic(cur_wp, goal)
+                # print(current_cost[cur_wp], n_cost,self.heuristic(n_wp, goal) , self.heuristic(cur_wp, goal), n_dist )
+
+                if n_wp in current_cost.keys():
+                    if n_dist < current_cost[n_wp]:
+                        current_cost[n_wp] = n_dist
+                        prev[n_wp] = cur_wp
+                    # print('visited before')
+                    else:
+                        continue
+                    # continue
+                frontier.put(n_wp, n_dist)
+                prev[n_wp] = cur_wp
+                current_cost[n_wp] = n_dist
+
+        if goal not in prev:
+            raise NoPathFoundException
+
+        return prev
+
+
+    def dfs(self, start: GridLocation, 
+                  goal: GridLocation, 
+                  path: List[GridLocation] = [], 
+                  visited = set()):
+
+        path.append([start])
+        visited.add(start)
+
+        if start == goal:
+            return path[0]
+
+        neighbours = self.map.neighbours(start)
+
+        for nb, cost, _ in neighbours:
+            if nb not in visited:
+                result = self.dfs(nb, goal, path, visited)
+                if result is not None:
+                    print(result)
+                    return result
+
+        path.pop()
+        return None
+
+            
+

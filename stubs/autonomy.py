@@ -42,22 +42,78 @@ def update_locations(old:List[RealLocation], new:List[RealLocation]) -> None:
                 logging.getLogger('update_locations').info('New location of interest: {}'.format(loc))
                 old.append(loc)
 
-def get_random_loi(map_) -> RealLocation:
+def get_random_loi(map_, pose) -> RealLocation:
     while True:
-        width, height = random.randint(0, map_.width / 2), random.randint(0, map_.height)
-        # width, height = 60, 80
-        # width, height = 30, 30
+        # get current position -> change to grid coord
+        x, y, z = pose
+        print('real x: ', x)
+        print('real y: ', y)
+
+        real_loc = RealLocation(x, y)
+        grid_coord = map_.real_to_grid(real_loc)
+        x, y = grid_coord
+        print('grid x: ', x)
+        print('grid y: ', y)
+
+        # x min, y min, x max, y max
+        xmin = 0
+        xmid = (map_.width / 2) / 2
+        xmax = map_.width / 2
+
+        ymin = 0
+        ymid = (map_.height / 2)
+        ymax = map_.height
+
+        ZONES = {
+            'TL': {
+                'top-left': (xmin, ymin), 
+                'bot-right': (xmid, ymid)
+            }, 
+            'TR': {
+                'top-left': (xmid, ymin), 
+                'bot-right': (xmax, ymid)
+            }, 
+            'BL': {
+                'top-left': (xmin, ymid), 
+                'bot-right': (xmid, ymax)
+            }, 
+            'BR': {
+                'top-left': (xmid, ymid), 
+                'bot-right': (xmax, ymax)
+            }, 
+        }
+
+        #check zone
+        
+        for zone in ZONES.keys():
+            if x > ZONES[zone]['top-left'][0] and x <= ZONES[zone]['bot-right'][0]:
+               if y > ZONES[zone]['top-left'][1] and y <= ZONES[zone]['bot-right'][1]:
+                    curzone = zone
+                    print('current zone: ', curzone)
+                    break
+
+        # ZONAL RANDOM GENERATION
+        zonelist = list(ZONES.keys())
+        
+        zonelist.remove(curzone)
+        print(zonelist)
+        
+        random_zone = random.choice(zonelist)
+        x1, y1 = ZONES[random_zone]['top-left']
+        x2, y2 = ZONES[random_zone]['bot-right']
+        
+        width, height = random.randint(x1, x2), random.randint(y1, y2)
         random_grid_loc = GridLocation(width, height)
 
 
-        if not (random_grid_loc in randomly_visited_nodes):
-            randomly_visited_nodes.append(random_grid_loc)
-            print('Random Generated Nodes: ', randomly_visited_nodes)
-        else:
-            continue
+        # if not (random_grid_loc in randomly_visited_nodes):
+        #     randomly_visited_nodes.append(random_grid_loc)
+        #     print('Random Generated Nodes: ', randomly_visited_nodes)
+        # else:
+        #     continue
         
         if map_.passable(random_grid_loc) and map_.in_bounds(random_grid_loc):
-            print(random_grid_loc, ' is not passable.')
+            print(random_grid_loc, ' is passable.')
             break
 
     return map_.grid_to_real(random_grid_loc)
@@ -152,7 +208,8 @@ def main():
         # Process image and detect targets
         start = time.time()
         targets = cv_service.targets_from_image(img)
-        print('CV inference time', time.time() - start)
+        print('\nCV inference time', time.time() - start)
+        
 
         # Submit targets
         if targets:
@@ -172,7 +229,7 @@ def main():
                 # TODO: You ran out of LOIs. You could perform and random search for new (check logic)
                 random_exploration_mode = True
                 # pick a random RealLocation to go to, and go until a clue is found
-                random_loi: RealLocation = get_random_loi(map_)
+                random_loi: RealLocation = get_random_loi(map_, pose)
                 print('\n\n##### Generating random LOI...')
                 print('###################', random_loi, map_.real_to_grid(random_loi))
                 # time.sleep(1)
@@ -183,11 +240,12 @@ def main():
                 # Get new LOI
                 lois.sort(key=lambda l: euclidean_distance(l, pose), reverse=True)
                 curr_loi = lois.pop()
+                print('\n\n New LOI: ', curr_loi)
                 logging.getLogger('Main').info('Current LOI set to: {}'.format(curr_loi))
 
                 # Plan a path to the new LOI
                 logging.getLogger('Main').info('Planning path to: {}'.format(curr_loi))
-                path = planner.plan(pose[:2], curr_loi, random_exploration_mode)
+                path = planner.plan(pose[:2], curr_loi)
                 path.reverse() # reverse so closest wp is last so that pop() is cheap
                 print(path)
                 curr_wp = None

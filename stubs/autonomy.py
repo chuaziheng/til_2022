@@ -32,6 +32,7 @@ ROBOT_RADIUS_M = 0.17       # TODO: Participant may tune.
 NLP_MODEL_DIR = 'data/models/nlp'          # TODO: Participant to fill in.
 CV_MODEL_DIR = 'data/models/cv'           # TODO: Participant to fill in.
 CAT_2_NAME = {1: 'Fallen', 0: 'Standing'}
+randomly_visited_nodes = []
 
 # Convenience function to update locations of interest.
 def update_locations(old:List[RealLocation], new:List[RealLocation]) -> None:
@@ -44,12 +45,21 @@ def update_locations(old:List[RealLocation], new:List[RealLocation]) -> None:
 
 def get_random_loi(map_) -> RealLocation:
     while True:
-        # width, height = random.randint(0, map_.width / 2), random.randint(0, map_.height)
-        # width, height = 60, 80
-        width, height = 30, 30
+        width, height = random.randint(0, map_.width / 2), random.randint(0, map_.height)
+        # width, height = 30, 30
         random_grid_loc = GridLocation(width, height)
+
+
+        if not (random_grid_loc in randomly_visited_nodes):
+            randomly_visited_nodes.append(random_grid_loc)
+            print('Random Generated Nodes: ', randomly_visited_nodes)
+        else:
+            continue
+        
         if map_.passable(random_grid_loc) and map_.in_bounds(random_grid_loc):
+            print(random_grid_loc, ' is not passable.')
             break
+
     return map_.grid_to_real(random_grid_loc)
 
 def main():
@@ -118,7 +128,7 @@ def main():
         # Process clues using NLP and determine any new locations of interest
         if clues:
             if random_exploration_mode:  # TODO: check logic
-                print('********* clue ******************')
+                print('\n\n********* CLUE FOUND ******************')
 
                 random_exploration_mode = False
                 lois = []
@@ -152,6 +162,7 @@ def main():
                 random_exploration_mode = True
                 # pick a random RealLocation to go to, and go until a clue is found
                 random_loi: RealLocation = get_random_loi(map_)
+                print('\n\n##### Generating random LOI...')
                 print('###################', random_loi, map_.real_to_grid(random_loi))
                 time.sleep(1)
                 lois.append(random_loi)
@@ -164,7 +175,7 @@ def main():
 
                 # Plan a path to the new LOI
                 logging.getLogger('Main').info('Planning path to: {}'.format(curr_loi))
-                path = planner.plan(pose[:2], curr_loi)
+                path = planner.plan(pose[:2], curr_loi, random_exploration_mode)
                 path.reverse() # reverse so closest wp is last so that pop() is cheap
                 print(path)
                 curr_wp = None

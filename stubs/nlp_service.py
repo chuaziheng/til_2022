@@ -7,7 +7,7 @@ import librosa
 import soundfile as sf
 from io import BytesIO
 import tensorflow as tf
-import panndas as pd
+import pandas as pd
 from sklearn.preprocessing import StandardScaler
 # import torch.nn.functional as F
 # from transformers import Wav2Vec2FeatureExtractor

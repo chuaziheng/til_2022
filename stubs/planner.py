@@ -1,5 +1,6 @@
 from tkinter import Grid
 from typing import List, Tuple, TypeVar, Dict
+from xmlrpc.client import Boolean
 from tilsdk.localization import *
 import heapq
 from queue import PriorityQueue
@@ -54,7 +55,7 @@ class Planner:
         # TODO: try manhattan
 
 
-    def plan(self, start:RealLocation, goal:RealLocation) -> List[RealLocation]:
+    def plan(self, start:RealLocation, goal:RealLocation, randomMode) -> List[RealLocation]:
         '''Plan in real coordinates.
 
         Raises NoPathFileException path is not found.
@@ -72,10 +73,10 @@ class Planner:
             List of RealLocation from start to goal.
         '''
 
-        path = self.plan_grid(self.map.real_to_grid(start), self.map.real_to_grid(goal))
+        path = self.plan_grid(self.map.real_to_grid(start), self.map.real_to_grid(goal), randomMode)
         return [self.map.grid_to_real(wp) for wp in path]
 
-    def plan_grid(self, start:GridLocation, goal:GridLocation) -> List[GridLocation]:
+    def plan_grid(self, start:GridLocation, goal:GridLocation, randomMode) -> List[GridLocation]:
         '''Plan in grid coordinates.
 
         Raises NoPathFileException path is not found.
@@ -97,6 +98,8 @@ class Planner:
             raise RuntimeError('Planner map is not initialized.')
 
         # TODO: Participant to complete.
+        print('current random mode: ', randomMode)
+        #A STAR CODE
         frontier = PriorityQueue()
         frontier.put(start, 0 + self.heuristic(start, goal))
         prev: Dict[GridLocation, GridLocation] = {}  # {cur: prev}

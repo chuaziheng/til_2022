@@ -34,11 +34,11 @@ log_level: 'debug'
 clues:
   - clue_id: 2
     trigger:
-      x: 0.5
-      y: 0.5
+      x: 1.2
+      y: 0.6
       r: 0.3
     location:
-      x: 1.75
+      x: 2.2
       y: 0.6
     audio_file: 'data/audio/SM4_F48_A0100.wav'
   - clue_id: 3
@@ -55,7 +55,7 @@ clues:
 targets:
   - target_id: 10
     trigger:
-      x: 1.75
+      x: 2.2
       y: 0.6
       r: 0.2
     # image_file: 'data/imgs/challenge_fallen.jpeg'

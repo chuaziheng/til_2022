@@ -66,25 +66,25 @@ def get_random_loi(map_, pose) -> RealLocation:
 
         ZONES = {
             'TL': {
-                'top-left': (xmin, ymin), 
+                'top-left': (xmin, ymin),
                 'bot-right': (xmid, ymid)
-            }, 
+            },
             'TR': {
-                'top-left': (xmid, ymin), 
+                'top-left': (xmid, ymin),
                 'bot-right': (xmax, ymid)
-            }, 
+            },
             'BL': {
-                'top-left': (xmin, ymid), 
+                'top-left': (xmin, ymid),
                 'bot-right': (xmid, ymax)
-            }, 
+            },
             'BR': {
-                'top-left': (xmid, ymid), 
+                'top-left': (xmid, ymid),
                 'bot-right': (xmax, ymax)
-            }, 
+            },
         }
 
         #check zone
-        
+
         for zone in ZONES.keys():
             if x > ZONES[zone]['top-left'][0] and x <= ZONES[zone]['bot-right'][0]:
                if y > ZONES[zone]['top-left'][1] and y <= ZONES[zone]['bot-right'][1]:
@@ -94,14 +94,14 @@ def get_random_loi(map_, pose) -> RealLocation:
 
         # ZONAL RANDOM GENERATION
         zonelist = list(ZONES.keys())
-        
+
         zonelist.remove(curzone)
         print(zonelist)
-        
+
         random_zone = random.choice(zonelist)
         x1, y1 = ZONES[random_zone]['top-left']
         x2, y2 = ZONES[random_zone]['bot-right']
-        
+
         width, height = random.randint(x1, x2), random.randint(y1, y2)
         random_grid_loc = GridLocation(width, height)
 
@@ -111,7 +111,7 @@ def get_random_loi(map_, pose) -> RealLocation:
         #     print('Random Generated Nodes: ', randomly_visited_nodes)
         # else:
         #     continue
-        
+
         if map_.passable(random_grid_loc) and map_.in_bounds(random_grid_loc):
             print(random_grid_loc, ' is passable.')
             break
@@ -202,6 +202,7 @@ def main():
                 curr_loi = None
 
             new_lois = nlp_service.locations_from_clues(clues)
+            print('new_lois', new_lois)
             update_locations(lois, new_lois)
             seen_clues.update([c[0] for c in clues])
 
@@ -209,7 +210,7 @@ def main():
         start = time.time()
         targets = cv_service.targets_from_image(img)
         print('\nCV inference time', time.time() - start)
-        
+
 
         # Submit targets
         if targets:

@@ -34,8 +34,8 @@ log_level: 'debug'
 clues:
   - clue_id: 2
     trigger:
-      x: 1
-      y: 0.6
+      x: 0.5
+      y: 0.5
       r: 0.3
     location:
       x: 1.75

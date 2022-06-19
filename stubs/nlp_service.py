@@ -6,6 +6,9 @@ import torchaudio
 import librosa
 import soundfile as sf
 from io import BytesIO
+import tensorflow as tf
+import panndas as pd
+from sklearn.preprocessing import StandardScaler
 # import torch.nn.functional as F
 # from transformers import Wav2Vec2FeatureExtractor
 # from NLPModels import HubertForSpeechClassification
@@ -21,27 +24,10 @@ class NLPService:
 
         # TODO: Participant to complete.
         self.model_dir = model_dir
-        self.model_path = os.path.join(self.model_dir, 'checkpoint-2270')
-        self.sampling_rate = 16000
-        # self.feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(self.model_path)
-        # self.model = HubertForSpeechClassification.from_pretrained(self.model_path)
-
-    # def speech_file_to_array_fn(self, path, sampling_rate):
-    #     speech_array, _sampling_rate = torchaudio.load(path)
-    #     resampler = torchaudio.transforms.Resample(_sampling_rate)
-    #     speech = resampler(speech_array).squeeze().numpy()
-    #     return speech
-
-
-    # def predict(self, path, sampling_rate):
-    #     speech = self.speech_file_to_array_fn(path, sampling_rate)
-    #     features = self.feature_extractor(speech, sampling_rate=sampling_rate, return_tensors="pt", padding=True)
-    #     input_values = features.input_values
-
-    #     logits = self.model(input_values).logits
-
-    #     scores = F.softmax(logits, dim=1).detach().cpu().numpy()[0]
-    #     return scores
+        self.model_path = os.path.join(self.model_dir, 'speech.h5')      
+        self.model = tf.keras.models.load_model(self.model_path)
+        self.CLASS_2_LABEL = {0: 'angry', 1: 'sad', 2: 'neutral', 3: 'happy', 4: 'fear'}
+        # self.LABEL_2_CLASS = {'angry': 0, 'fear': 4, 'happy': 3, 'neutral': 2, 'sad': 1}
 
     def locations_from_clues(self, clues:Iterable[Clue]) -> List[RealLocation]:
         '''Process clues and get locations of interest.
@@ -59,15 +45,46 @@ class NLPService:
         lois
             Locations of interest.
         '''
+        def extract_features(data, sample_rate):
+            # ZCR
+            result = np.array([])
+            zcr = np.mean(librosa.feature.zero_crossing_rate(y=data).T, axis=0)
+            result=np.hstack((result, zcr)) # stacking horizontally
+            # Chroma_stft
+            stft = np.abs(librosa.stft(data))
+            chroma_stft = np.mean(librosa.feature.chroma_stft(S=stft, sr=sample_rate).T, axis=0)
+            result = np.hstack((result, chroma_stft)) # stacking horizontally
+            # MFCC
+            mfcc = np.mean(librosa.feature.mfcc(y=data, sr=sample_rate).T, axis=0)
+            result = np.hstack((result, mfcc)) # stacking horizontally
+            # Root Mean Square Value
+            rms = np.mean(librosa.feature.rms(y=data).T, axis=0)
+            result = np.hstack((result, rms)) # stacking horizontally
+            # MelSpectogram
+            mel = np.mean(librosa.feature.melspectrogram(y=data, sr=sample_rate).T, axis=0)
+            result = np.hstack((result, mel)) # stacking horizontally
+            return result
 
         # TODO: Participant to complete.
         locations = []
         print('in nlp service')
 
         for clue in clues:
-            locations.append(clue.location)
+            # locations.append(clue.location)
 
             waveform, sr = sf.read(BytesIO(clue.audio))
+            res1 = extract_features(waveform, sr)
+            result = np.array(res1)
+            pred_Features = pd.DataFrame(result)
+            pred_X = pred_Features.values
+            scaler = StandardScaler()
+            pred_X = scaler.fit_transform(pred_X)
+            pred_test = self.model.predict(pred_X)
+            y_pred = np.argmax(pred_test, axis=1)
+            pred_lab = [self.CLASS_2_LABEL[i] for i in y_pred]
+
+            if pred_lab =='angry' or pred_lab=='sad':
+                locations.append(clue.location)
 
             # speech, sr = torchaudio.load(audio)
             # speech = speech[0].numpy().squeeze()
@@ -76,7 +93,6 @@ class NLPService:
             # pred_class = outputs.argmax()
 
         return locations
-
 
 class MockNLPService:
     '''Mock NLP Service.

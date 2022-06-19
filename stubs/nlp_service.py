@@ -77,10 +77,12 @@ class NLPService:
             pred_X = pred_Features.values
             scaler = StandardScaler()
             pred_X = scaler.fit_transform(pred_X)
+            pred_X = pred_X.T
+            print(pred_X.shape)
             pred_test = self.model.predict(pred_X)
             y_pred = np.argmax(pred_test, axis=1)
             pred_lab = [self.CLASS_2_LABEL[i] for i in y_pred]
-
+            print('predicted', pred_lab)
             if pred_lab =='angry' or pred_lab=='sad':
                 locations.append(clue.location)
 

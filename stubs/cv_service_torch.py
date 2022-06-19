@@ -28,15 +28,7 @@ class CVService:
         self.id = 0
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print('device', self.device)
-        # from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
-        # num_classes = 3
-
-        # self.model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=False)  # ,trainable_backbone_layers=1
-        # in_features = self.model.roi_heads.box_predictor.cls_score.in_features
-        # self.model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
-        # self.model.transform.min_size = (720,)
-        # self.model.transform.max_size = 720
-        # self.model.load_state_dict(torch.load(self.model_path, map_location=self.device))
+        
         self.model = torch.load(self.model_path, map_location=torch.device(self.device))
         self.model.to(self.device)
         self.model.eval()

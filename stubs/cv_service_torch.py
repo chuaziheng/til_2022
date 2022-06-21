@@ -9,6 +9,8 @@ from torchvision import transforms
 # from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 import torch
 
+CAT_2_NAME = {1: 'Fallen', 0: 'Standing'}
+
 class CVService:
     def __init__(self, model_dir):
         '''
@@ -28,7 +30,7 @@ class CVService:
         self.id = 0
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print('device', self.device)
-        
+
         self.model = torch.load(self.model_path, map_location=torch.device(self.device))
         self.model.to(self.device)
         self.model.eval()
@@ -63,6 +65,8 @@ class CVService:
 
         # res = []
         candidates = []
+        debug = False
+        img_for_viz = img.copy()
         # h, w = img.shape[0], img.shape[1]
 
         with torch.no_grad():
@@ -84,6 +88,20 @@ class CVService:
                 area = width*height
                 bbox = BoundingBox(x, y, width, height)  # x_center, y_center, w, h
                 candidates.append((score, area, bbox, label))
+
+                if score > 0.5 and self.id < 200:
+                    debug = True
+                    x, y, w, h = x, y, width, height
+                    if label == 0:  # if standing green
+                        cv2.rectangle(img_for_viz, (int(x-w/2), int(y-h/2)), (int(x+w/2), int(y+h/2)), (0,255,0), thickness=1)
+                        cv2.circle(img_for_viz, (x, y), 1, (0, 255, 0))
+                        cv2.putText(img_for_viz, f'{score:.4f}', (x+int(w/2)+10,y+int(h/2)), 0, 0.5, (0,255,0), thickness=2)
+                    else:  # if fallen red
+                        cv2.rectangle(img_for_viz, (int(x-w/2), int(y-h/2)), (int(x+w/2), int(y+h/2)), (0,0,255), thickness=1)
+                        cv2.circle(img_for_viz, (x, y), 1, (0, 0, 255))
+                        cv2.putText(img_for_viz, f'{score:.4f}', (x+int(w/2)+10,y+int(h/2)), 0, 0.5, (0,0,255), thickness=2)
+            if debug:
+                cv2.imwrite(f"./data/res/det_{self.id}.jpg", img_for_viz)
 
         target = self.postprocess_candidates(candidates)
         self.id += 1

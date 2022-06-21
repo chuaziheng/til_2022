@@ -15,8 +15,8 @@ robot_radius: 2  # 10
 
 # simulation
 start_pose:
-  x: 0.5
-  y: 0.5
+  x: 1.2
+  y: 0.6
   z: 0.5
 use_noisy_pose: off
 robot_phy_length: 0.32
@@ -40,7 +40,8 @@ clues:
     location:
       x: 2.2
       y: 0.6
-    audio_file: 'data/audio/SM4_F48_A0100.wav'
+    audio_file: 'data/audio/angry.wav'
+    # audio_file: 'data/audio/SM4_F48_A0100.wav'
   - clue_id: 3
     trigger:
       x: 1.8

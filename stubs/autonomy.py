@@ -10,8 +10,8 @@ from tilsdk.utilities import PIDController, SimpleMovingAverage  # import option
 from tilsdk.mock_robomaster.robot import Robot                 # Use this for the simulator
 # from robomaster.robot import Robot                              # Use this for real robot
 
-# from cv_service_torch import CVService, MockCVService  # using pytorch
-from cv_service import CVService, MockCVService  # using onnx
+from cv_service_torch import CVService, MockCVService  # using pytorch
+# from cv_service import CVService, MockCVService  # using onnx
 from nlp_service import NLPService
 from planner import Planner
 import cv2
@@ -57,8 +57,8 @@ def get_random_loi(map_, pose) -> RealLocation:
 
         # x min, y min, x max, y max
         xmin = 0
-        xmid = (map_.width / 2) / 2
-        xmax = map_.width / 2
+        xmid = (map_.width / 2) / 2  # TAKENOTE
+        xmax = map_.width / 2  # TAKENOTE
 
         ymin = 0
         ymid = (map_.height / 2)
@@ -99,6 +99,7 @@ def get_random_loi(map_, pose) -> RealLocation:
         print(zonelist)
 
         random_zone = random.choice(zonelist)
+        print('random zone picked: ', random_zone)
         x1, y1 = ZONES[random_zone]['top-left']
         x2, y2 = ZONES[random_zone]['bot-right']
 
@@ -221,7 +222,7 @@ def main():
                 x, y, w, h = list(map(int, d.bbox))
                 cv2.rectangle(img, (int(x-w/2), int(y-h/2)), (int(x+w/2), int(y+h/2)), (0,255,0), 2)
                 cv2.circle(img, (x, y), 1, (0, 255, 0))
-                cv2.putText(img, f'{CAT_2_NAME[d.cls]}', (x+int(w/2)+10,y+int(h/2)), 0, 0.3, (0,255,0))
+                cv2.putText(img, f'{CAT_2_NAME[d.cls]}', (x+int(w/2)+10,y+int(h/2)), 0, 0.3, (0,255,0), thickness=1)
             cv2.imwrite(f"./data/imgs/det.jpg", img)
 
         if not curr_loi:
@@ -323,7 +324,7 @@ def main():
                         x, y, w, h = list(map(int, d.bbox))
                         cv2.rectangle(img, (int(x-w/2), int(y-h/2)), (int(x+w/2), int(y+h/2)), (0,255,0), 2)
                         cv2.circle(img, (x, y), 1, (0, 255, 0))
-                        cv2.putText(img, f'{CAT_2_NAME[d.cls]}', (x+int(w/2)+10,y+int(h/2)), 0, 0.3, (0,255,0))
+                        cv2.putText(img, f'{CAT_2_NAME[d.cls]}', (x+int(w/2)+10,y+int(h/2)), 0, 0.3, (0,255,0), thickness=1)
                     cv2.imwrite(f"./data/imgs/det{i}.jpg", img)
 
                 # TODO: Rotate all directions to capture target

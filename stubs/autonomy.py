@@ -57,8 +57,8 @@ def get_random_loi(map_, pose) -> RealLocation:
 
         # x min, y min, x max, y max
         xmin = 0
-        xmid = (map_.width / 2) / 2  # TAKENOTE
-        xmax = map_.width / 2  # TAKENOTE
+        xmid = (map_.width) / 2  # TAKENOTE
+        xmax = map_.width  # TAKENOTE
 
         ymin = 0
         ymid = (map_.height / 2)
@@ -203,7 +203,7 @@ def main():
                 curr_loi = None
 
             new_lois = nlp_service.locations_from_clues(clues)
-            print('new_lois', new_lois)
+            print('################################# new_lois', new_lois)
             update_locations(lois, new_lois)
             seen_clues.update([c[0] for c in clues])
 
@@ -301,31 +301,32 @@ def main():
             else:
                 logging.getLogger('Navigation').info('End of path.')
                 curr_loi = None
-                for i in range(8):
-                    pose, clues = loc_service.get_pose()
-                    pose = pose_filter.update(pose)
-                    print('pose', pose)
-                    img = robot.camera.read_cv2_image(strategy='newest')
+                if not random_exploration_mode:
+                    for i in range(8):
+                        pose, clues = loc_service.get_pose()
+                        pose = pose_filter.update(pose)
+                        print('pose', pose)
+                        img = robot.camera.read_cv2_image(strategy='newest')
 
-                    targets = cv_service.targets_from_image(img)
+                        targets = cv_service.targets_from_image(img)
 
-                    robot.chassis.drive_speed(x=0.0, y=0.0, z=30)  # set stop for safety
-                    time.sleep(1.6)
-                    robot.chassis.drive_speed(x=0.0, y=0.0, z=0.0)  # set stop for safety
-                    time.sleep(1)
+                        robot.chassis.drive_speed(x=0.0, y=0.0, z=30)  # set stop for safety
+                        time.sleep(1.6)
+                        robot.chassis.drive_speed(x=0.0, y=0.0, z=0.0)  # set stop for safety
+                        time.sleep(1)
 
-                    print('end of turn')
-                    # if targets:  # rmb to put back
-                    logging.getLogger('Main').info('{} targets detected.'.format(len(targets)))
-                    logging.getLogger('Reporting').info(rep_service.report(pose, img, targets))
+                        print('end of turn')
+                        # if targets:  # rmb to put back
+                        logging.getLogger('Main').info('{} targets detected.'.format(len(targets)))
+                        logging.getLogger('Reporting').info(rep_service.report(pose, img, targets))
 
-                    # For viz
-                    for d in targets:
-                        x, y, w, h = list(map(int, d.bbox))
-                        cv2.rectangle(img, (int(x-w/2), int(y-h/2)), (int(x+w/2), int(y+h/2)), (0,255,0), 2)
-                        cv2.circle(img, (x, y), 1, (0, 255, 0))
-                        cv2.putText(img, f'{CAT_2_NAME[d.cls]}', (x+int(w/2)+10,y+int(h/2)), 0, 0.3, (0,255,0), thickness=1)
-                    cv2.imwrite(f"./data/imgs/det{i}.jpg", img)
+                        # For viz
+                        for d in targets:
+                            x, y, w, h = list(map(int, d.bbox))
+                            cv2.rectangle(img, (int(x-w/2), int(y-h/2)), (int(x+w/2), int(y+h/2)), (0,255,0), 2)
+                            cv2.circle(img, (x, y), 1, (0, 255, 0))
+                            cv2.putText(img, f'{CAT_2_NAME[d.cls]}', (x+int(w/2)+10,y+int(h/2)), 0, 0.3, (0,255,0), thickness=1)
+                        cv2.imwrite(f"./data/imgs/det{i}.jpg", img)
 
                 # TODO: Rotate all directions to capture target
                 continue

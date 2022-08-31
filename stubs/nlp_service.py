@@ -82,9 +82,9 @@ class NLPService:
             pred_test = self.model.predict(pred_X)
             y_pred = np.argmax(pred_test, axis=1)
             pred_lab = [self.CLASS_2_LABEL[i] for i in y_pred][0]
-            print('predicted', pred_lab)
-            if pred_lab in ['sad', 'angry', 'happy']:  #
-            # if pred_lab in ['sad', 'angry']:  # , 'happy'
+            print('##################################### predicted', pred_lab)
+            # if pred_lab in ['sad', 'angry', 'happy']:  #
+            if pred_lab in ['sad', 'angry']:  # , 'happy'
                 print('correct pred')
                 locations.append(clue.location)
 

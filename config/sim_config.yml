@@ -5,13 +5,14 @@ port: 5566
 
 # map
 # map_file: 'data/maps/map_empty_1cm.png'
-# map_file: 'data/maps/map_complex_1cm.png'
-map_file: 'data/maps/test_5cm.png'
-# map_scale: 0.01
-map_scale: 0.05  # for test_5cm
+map_file: 'data/maps/map_complex_1cm.png'
+# map_file: 'data/maps/test_5cm.png'
+map_scale: 0.01
+# map_scale: 0.05  # for test_5cm
 
 # display
-robot_radius: 2  # 10
+robot_radius: 10
+# robot_radius: 2  # 10
 
 # simulation
 start_pose:
@@ -42,6 +43,24 @@ clues:
       y: 0.6
     audio_file: 'data/audio/angry.wav'
     # audio_file: 'data/audio/SM4_F48_A0100.wav'
+  - clue_id: 4
+    trigger:
+      x: 1.2
+      y: 0.6
+      r: 0.3
+    location:
+      x: 2.2
+      y: 1.5
+    audio_file: 'data/audio/angry.wav'
+  - clue_id: 5
+    trigger:
+      x: 1.2
+      y: 0.6
+      r: 0.3
+    location:
+      x: 2.8
+      y: 0.6
+    audio_file: 'data/audio/angry.wav'
   - clue_id: 3
     trigger:
       x: 1.8

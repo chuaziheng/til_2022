@@ -1,13 +1,17 @@
-# til-final
+# DSTA Brainhack 2022 TIL AI Hackathon [Team KEIWUAI20OFF]
 
-SDK, simulator and documentation for TIL 2022 Robotics
-Challenge.
+Champions (University Category)
+
+
+
+## Directory
 
 * ``src/``: SDK and simulator packages.
 * ``config/``: SDK and simulator sample configuration files.
 * ``data/``: Simulator sample data.
 * ``docs/``: Documentation source.
 * ``stubs/``: Code stubs for participants.
+* ``notebooks/``: Training notebooks for qualifying round
 
 
 ## Install
@@ -33,9 +37,10 @@ sphinx-build -b html docs/source docs/build
 Access the docs at `docs/build/index.html`.
 
 ## Get model weights
-Download `frcnn.onnx`  https://drive.google.com/file/d/1KPGgrLXAcj5OTTF7tyGQOjeak2GABHWA/view and place in `data/models/cv/`
 
-'frcnn.pth' https://drive.google.com/file/d/1U2FhAMTSaayw52OQAqsZ86nBGBuuo50-/view?usp=sharing
+Download model weights from [gdrive](https://drive.google.com/drive/folders/1q60Qoj_65Og3Nk3u_pDXQ70flAj7vEXx?usp=sharing) and place into ``data/models/``
+
+
 ## Run simulator
 ```
 til-simulator -c config/sim_config.yml

@@ -95,11 +95,11 @@ class CVService:
                     if label == 0:  # if standing green
                         cv2.rectangle(img_for_viz, (int(x-w/2), int(y-h/2)), (int(x+w/2), int(y+h/2)), (0,255,0), thickness=1)
                         cv2.circle(img_for_viz, (x, y), 1, (0, 255, 0))
-                        cv2.putText(img_for_viz, f'{score:.4f}', (x+int(w/2)+10,y+int(h/2)), 0, 0.5, (0,255,0), thickness=2)
+                        cv2.putText(img_for_viz, f'standing {score:.4f}', (x+int(w/2)+10,y+int(h/2)), 0, 0.5, (0,255,0), thickness=2)
                     else:  # if fallen red
                         cv2.rectangle(img_for_viz, (int(x-w/2), int(y-h/2)), (int(x+w/2), int(y+h/2)), (0,0,255), thickness=1)
                         cv2.circle(img_for_viz, (x, y), 1, (0, 0, 255))
-                        cv2.putText(img_for_viz, f'{score:.4f}', (x+int(w/2)+10,y+int(h/2)), 0, 0.5, (0,0,255), thickness=2)
+                        cv2.putText(img_for_viz, f'fallen {score:.4f}', (x+int(w/2)+10,y+int(h/2)), 0, 0.5, (0,0,255), thickness=2)
             if debug:
                 cv2.imwrite(f"./data/res/det_{self.id}.jpg", img_for_viz)
 
